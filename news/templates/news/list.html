@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>NBA 新聞</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body { font-family: sans-serif; background: #f5f5f5; color: #222; }
+    header { background: #1a1a2e; color: #fff; padding: 16px 24px; }
+    header h1 { font-size: 1.5rem; }
+    .container { max-width: 900px; margin: 24px auto; padding: 0 16px; }
+    .card { display: flex; gap: 16px; background: #fff; border-radius: 8px;
+            margin-bottom: 16px; padding: 16px; box-shadow: 0 1px 4px rgba(0,0,0,.1);
+            text-decoration: none; color: inherit; }
+    .card:hover { box-shadow: 0 3px 10px rgba(0,0,0,.15); }
+    .card img { width: 140px; height: 90px; object-fit: cover; border-radius: 4px; flex-shrink: 0; }
+    .card-body { flex: 1; }
+    .card-body h2 { font-size: 1rem; margin-bottom: 6px; }
+    .card-body p { font-size: .85rem; color: #555; line-height: 1.5; }
+    .meta { font-size: .75rem; color: #999; margin-top: 8px; }
+    .pagination { display: flex; gap: 8px; justify-content: center; margin: 24px 0; }
+    .pagination a, .pagination span { padding: 6px 12px; border-radius: 4px;
+      background: #fff; border: 1px solid #ddd; text-decoration: none; color: #333; }
+    .pagination .current { background: #1a1a2e; color: #fff; border-color: #1a1a2e; }
+  </style>
+</head>
+<body>
+  <header><h1>NBA 新聞</h1></header>
+  <div class="container">
+    {% for article in articles %}
+    <a class="card" href="{% url 'article-detail' article.pk %}">
+      {% if article.img %}<img src="{{ article.img }}" alt="">{% endif %}
+      <div class="card-body">
+        <h2>{{ article.title }}</h2>
+        <p>{{ article.summary }}</p>
+        <div class="meta">{{ article.author }} &nbsp;·&nbsp; {{ article.publish_time|date:"Y-m-d H:i" }}</div>
+      </div>
+    </a>
+    {% empty %}
+    <p style="text-align:center;color:#999;margin-top:48px;">尚無新聞，請稍後再試。</p>
+    {% endfor %}
+
+    {% if is_paginated %}
+    <div class="pagination">
+      {% if page_obj.has_previous %}
+        <a href="?page={{ page_obj.previous_page_number }}">上一頁</a>
+      {% endif %}
+      <span class="current">{{ page_obj.number }} / {{ page_obj.paginator.num_pages }}</span>
+      {% if page_obj.has_next %}
+        <a href="?page={{ page_obj.next_page_number }}">下一頁</a>
+      {% endif %}
+    </div>
+    {% endif %}
+  </div>
+</body>
+</html>
