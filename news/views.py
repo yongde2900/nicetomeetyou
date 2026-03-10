@@ -1,14 +1,11 @@
-from django.views.generic import ListView, DetailView
+from django.views.generic import TemplateView, DetailView
 from rest_framework.generics import ListAPIView, RetrieveAPIView
 from .models import Article
 from .serializers import ArticleListSerializer, ArticleDetailSerializer
 
 
-class ArticleListView(ListView):
-    model = Article
+class ArticleListView(TemplateView):
     template_name = "news/list.html"
-    context_object_name = "articles"
-    paginate_by = 20
 
 
 class ArticleDetailView(DetailView):

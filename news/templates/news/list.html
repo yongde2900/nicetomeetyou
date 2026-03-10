@@ -19,39 +19,64 @@
     .card-body h2 { font-size: 1rem; margin-bottom: 6px; }
     .card-body p { font-size: .85rem; color: #555; line-height: 1.5; }
     .meta { font-size: .75rem; color: #999; margin-top: 8px; }
-    .pagination { display: flex; gap: 8px; justify-content: center; margin: 24px 0; }
-    .pagination a, .pagination span { padding: 6px 12px; border-radius: 4px;
-      background: #fff; border: 1px solid #ddd; text-decoration: none; color: #333; }
-    .pagination .current { background: #1a1a2e; color: #fff; border-color: #1a1a2e; }
+    #sentinel { height: 40px; display: flex; align-items: center; justify-content: center; }
+    .spinner { width: 24px; height: 24px; border: 3px solid #ddd;
+               border-top-color: #1a1a2e; border-radius: 50%;
+               animation: spin .7s linear infinite; }
+    @keyframes spin { to { transform: rotate(360deg); } }
+    #end-msg { text-align: center; color: #bbb; font-size: .85rem; padding: 24px 0; display: none; }
   </style>
 </head>
 <body>
   <header><h1>NBA 新聞</h1></header>
   <div class="container">
-    {% for article in articles %}
-    <a class="card" href="{% url 'article-detail' article.pk %}">
-      {% if article.img %}<img src="{{ article.img }}" alt="">{% endif %}
-      <div class="card-body">
-        <h2>{{ article.title }}</h2>
-        <p>{{ article.summary }}</p>
-        <div class="meta">{{ article.author }} &nbsp;·&nbsp; {{ article.publish_time|date:"Y-m-d H:i" }}</div>
-      </div>
-    </a>
-    {% empty %}
-    <p style="text-align:center;color:#999;margin-top:48px;">尚無新聞，請稍後再試。</p>
-    {% endfor %}
-
-    {% if is_paginated %}
-    <div class="pagination">
-      {% if page_obj.has_previous %}
-        <a href="?page={{ page_obj.previous_page_number }}">上一頁</a>
-      {% endif %}
-      <span class="current">{{ page_obj.number }} / {{ page_obj.paginator.num_pages }}</span>
-      {% if page_obj.has_next %}
-        <a href="?page={{ page_obj.next_page_number }}">下一頁</a>
-      {% endif %}
-    </div>
-    {% endif %}
+    <div id="news-list"></div>
+    <div id="sentinel"><div class="spinner"></div></div>
+    <div id="end-msg">已載入全部新聞</div>
   </div>
+
+  <script>
+    let nextUrl = '/api/articles/';
+    let loading = false;
+
+    function createCard(article) {
+      const a = document.createElement('a');
+      a.className = 'card';
+      a.href = `/news/${article.id}/`;
+      a.innerHTML = `
+        ${article.img ? `<img src="${article.img}" alt="">` : ''}
+        <div class="card-body">
+          <h2>${article.title}</h2>
+          <p>${article.summary}</p>
+          <div class="meta">${article.author || ''} &nbsp;·&nbsp; ${article.publish_time ? article.publish_time.slice(0, 16).replace('T', ' ') : ''}</div>
+        </div>`;
+      return a;
+    }
+
+    async function loadMore() {
+      if (loading || !nextUrl) return;
+      loading = true;
+
+      const res = await fetch(nextUrl);
+      const data = await res.json();
+
+      const list = document.getElementById('news-list');
+      data.results.forEach(article => list.appendChild(createCard(article)));
+
+      nextUrl = data.next;
+      loading = false;
+
+      if (!nextUrl) {
+        document.getElementById('sentinel').style.display = 'none';
+        document.getElementById('end-msg').style.display = 'block';
+      }
+    }
+
+    const observer = new IntersectionObserver(entries => {
+      if (entries[0].isIntersecting) loadMore();
+    }, { rootMargin: '200px' });
+
+    observer.observe(document.getElementById('sentinel'));
+  </script>
 </body>
 </html>
