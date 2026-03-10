@@ -3,6 +3,7 @@ import sys
 import requests
 from bs4 import BeautifulSoup
 from datetime import datetime
+from django.core.cache import cache
 
 
 def fetch_content(url: str) -> tuple[str, str, datetime | None]:
@@ -95,6 +96,9 @@ def save_to_db(articles: list[dict]) -> None:
         )
         if created:
             saved += 1
+    # 有更新的話清掉cache
+    if saved > 0:
+        cache.delete_pattern("articles:page:*")
 
     print(f"儲存完成，新增 {saved} 篇")
 

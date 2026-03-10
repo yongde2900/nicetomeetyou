@@ -5,6 +5,7 @@ uvicorn[standard]
 requests
 beautifulsoup4
 python-decouple
+django-redis
 pytz
 django-apscheduler
 locust
