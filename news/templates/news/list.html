@@ -25,11 +25,17 @@
                animation: spin .7s linear infinite; }
     @keyframes spin { to { transform: rotate(360deg); } }
     #end-msg { text-align: center; color: #bbb; font-size: .85rem; padding: 24px 0; display: none; }
+    #new-banner { display: none; position: sticky; top: 12px; z-index: 10;
+                  background: #1a1a2e; color: #fff; text-align: center;
+                  padding: 10px; border-radius: 8px; cursor: pointer;
+                  font-size: .9rem; box-shadow: 0 4px 12px rgba(0,0,0,.3); }
+    #new-banner:hover { background: #2a2a4e; }
   </style>
 </head>
 <body>
   <header><h1>NBA 新聞</h1></header>
   <div class="container">
+    <div id="new-banner" onclick="loadLatest()"></div>
     <div id="news-list"></div>
     <div id="sentinel"><div class="spinner"></div></div>
     <div id="end-msg">已載入全部新聞</div>
@@ -72,11 +78,46 @@
       }
     }
 
+    async function loadLatest() {
+      const banner = document.getElementById('new-banner');
+      banner.style.display = 'none';
+
+      const res = await fetch('/api/articles/');
+      const data = await res.json();
+
+      const list = document.getElementById('news-list');
+      const existingIds = new Set([...list.querySelectorAll('a')].map(a => a.href));
+
+      const newCards = data.results
+        .filter(a => !existingIds.has(location.origin + `/news/${a.id}/`))
+        .map(createCard)
+        .reverse();
+
+      newCards.forEach(card => list.prepend(card));
+    }
+
+    // 無限滾動
     const observer = new IntersectionObserver(entries => {
       if (entries[0].isIntersecting) loadMore();
     }, { rootMargin: '200px' });
-
     observer.observe(document.getElementById('sentinel'));
+
+    // WebSocket
+    const ws = new WebSocket(`ws://${location.host}/ws/news/`);
+
+    ws.onmessage = (event) => {
+      const data = JSON.parse(event.data);
+      if (data.type === 'news_update') {
+        const banner = document.getElementById('new-banner');
+        banner.textContent = `有 ${data.count} 篇新文章，點此更新`;
+        banner.style.display = 'block';
+      }
+    };
+
+    ws.onclose = () => {
+      // 斷線後 3 秒自動重連
+      setTimeout(() => location.reload(), 3000);
+    };
   </script>
 </body>
 </html>

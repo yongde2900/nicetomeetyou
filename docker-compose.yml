@@ -46,7 +46,7 @@ services:
       REDIS_URL: redis://redis:6379/0
     command: >
       sh -c "python manage.py migrate &&
-             uvicorn config.asgi:application --host 0.0.0.0 --port 8000 --workers 4"
+             uvicorn config.asgi:application --host 0.0.0.0 --port 8000 --workers ${UVICORN_WORKERS:-4}"
 
   scheduler:
     build: .

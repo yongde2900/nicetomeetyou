@@ -96,11 +96,23 @@ def save_to_db(articles: list[dict]) -> None:
         )
         if created:
             saved += 1
-    # 有更新的話清掉cache
     if saved > 0:
         cache.delete_pattern("articles:page:*")
+        _broadcast_update(saved)
 
     print(f"儲存完成，新增 {saved} 篇")
+
+
+def _broadcast_update(count: int) -> None:
+    from channels.layers import get_channel_layer
+    from asgiref.sync import async_to_sync
+    from news.consumers import NEWS_GROUP
+
+    channel_layer = get_channel_layer()
+    async_to_sync(channel_layer.group_send)(
+        NEWS_GROUP,
+        {"type": "news.update", "count": count},
+    )
 
 
 def run() -> None:

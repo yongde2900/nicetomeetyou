@@ -6,6 +6,8 @@ requests
 beautifulsoup4
 python-decouple
 django-redis
+channels
+channels-redis
 pytz
 django-apscheduler
 locust
