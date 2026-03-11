@@ -81,6 +81,7 @@
     async function loadLatest() {
       const banner = document.getElementById('new-banner');
       banner.style.display = 'none';
+      banner.dataset.count = '0';
 
       const res = await fetch('/api/articles/');
       const data = await res.json();
@@ -109,7 +110,9 @@
       const data = JSON.parse(event.data);
       if (data.type === 'news_update') {
         const banner = document.getElementById('new-banner');
-        banner.textContent = `有 ${data.count} 篇新文章，點此更新`;
+        const accumulated = parseInt(banner.dataset.count || '0') + data.count;
+        banner.dataset.count = accumulated;
+        banner.textContent = `有 ${accumulated} 篇新文章，點此更新`;
         banner.style.display = 'block';
       }
     };
