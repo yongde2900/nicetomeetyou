@@ -119,6 +119,6 @@ LOGGING = {
     },
     "root": {
         "handlers": ["console"],
-        "level": "INFO",
+        "level": config("DJANGO_LOG_LEVEL", default="INFO"),
     },
 }
