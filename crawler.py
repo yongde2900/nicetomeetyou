@@ -12,7 +12,9 @@ def fetch_content(url: str) -> tuple[str, str, datetime | None]:
         soup = BeautifulSoup(res.text, "html.parser")
 
         content_div = soup.find("div", id="story_body_content")
-        paragraphs = content_div.find_all("p") if content_div else []
+        all_p = content_div.find_all("p") if content_div else []
+        paragraphs = [p for p in all_p if not p.find(
+            "div") and not p.get("class")]
         content = "\n".join(p.text.strip()
                             for p in paragraphs if p.text.strip())
 
